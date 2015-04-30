@@ -11,7 +11,7 @@ class SlidingPiece < Piece
     super
   end
 
-  def moves # should return an array of places a Piece can move to.
+  def moves
     all_possible_moves = []
 
     move_dirs.each do |dir|
@@ -19,10 +19,9 @@ class SlidingPiece < Piece
         i = 1
         x = @pos[0] + offset[0]
         y = @pos[1] + offset[1]
-        # debugger
         while @board.on_board?([x, y])
           break if my_teammate([x, y])
-          all_possible_moves << [x, y] #unless @pos == [x, y]
+          all_possible_moves << [x, y]
           break if other_team([x, y])
 
           i += 1
@@ -34,10 +33,6 @@ class SlidingPiece < Piece
 
     all_possible_moves
   end
-
-  # def moves # should return an array of places a Piece can move to.
-  #   raise "Not implemented"
-  # end
 end
 
 class Bishop < SlidingPiece
@@ -72,5 +67,4 @@ class Queen < SlidingPiece
   def move_dirs
     [:orthogonal, :diagonal]
   end
-
 end

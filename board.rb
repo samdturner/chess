@@ -11,28 +11,6 @@ class Board
     place_pieces unless all_nils
   end
 
-  def place_pieces
-    place_non_pawns("black")
-    place_non_pawns("white")
-    place_pawns("black")
-    place_pawns("white")
-  end
-
-  def place_non_pawns(color)
-    x = color == "black" ? 0 : (SIZE - 1)
-
-    NON_PAWNS.each_with_index do |val, idx|
-      self[x, idx] = val.new(color, [x, idx], self)
-    end
-  end
-
-  def place_pawns(color)
-    x = color == "black" ? 1 : (SIZE - 2)
-    (0...SIZE).each do |i|
-      self[x, i] = Pawn.new(color, [x, i], self)
-    end
-  end
-
   def in_check?(color)
     king = find_king(color)
     other_color = (color == "black" ? "white" : "black")
@@ -55,22 +33,6 @@ class Board
     true
   end
 
-  def find_king(color)
-    find_team(color).find do |piece|
-      piece.class == King
-    end
-  end
-
-  def find_team(color)
-    find_all.select do |piece|
-      piece.color == color
-    end
-  end
-
-  def find_all
-    @grid.flatten.compact
-  end
-
   def move(start_pos, end_pos, player_color)
     piece = piece_at(start_pos)
 
@@ -89,7 +51,6 @@ class Board
 
   def move!(start_pos, end_pos)
     piece = piece_at(start_pos)
-
     self[start_pos[0], start_pos[1]] = nil
     self[end_pos[0], end_pos[1]] = piece
     piece.pos = end_pos
@@ -108,15 +69,19 @@ class Board
   end
 
   def display
+    display_col_numbers
     @grid.each_with_index do |row, idx|
-      row_string = ""
+      char_num = idx + 97
+      print "#{char_num.chr} "
       row.each_with_index do |piece, idx2|
-        row_string += piece.nil? ? "    " : " #{piece.picture}  "
-        row_string += "|" if idx2 < (SIZE - 1)
+        cell_string = ""
+        cell_string += piece.nil? ? "    " : " #{piece.picture}  "
+        print cell_string.colorize(colorize_hash(idx, idx2, piece))
       end
-      puts row_string
-      puts ("-" * 40) if idx < (SIZE - 1)
+      print " #{char_num.chr}"
+      puts ""
     end
+    display_col_numbers
 
     nil
   end
@@ -137,10 +102,6 @@ class Board
     (0...SIZE).include?(potential_pos[0]) && (0...SIZE).include?(potential_pos[1])
   end
 
-  def occupied?(potential_pos)
-    @grid
-  end
-
   def color_of_piece_at(pos)
     piece = piece_at(pos)
     piece.nil? ? nil : piece.color
@@ -149,4 +110,70 @@ class Board
   def inspect
     "I am a board"
   end
+
+  private
+
+    def colorize_hash(idx, idx2, piece)
+      colorize_hash = {}
+      colorize_hash[:color] = text_color(piece) unless piece.nil?
+      colorize_hash[:background] = background_color(idx, idx2)
+
+      colorize_hash
+    end
+
+    def display_col_numbers
+      puts "  " + (' 0  '..' 7  ').to_a.join("")
+    end
+
+    def background_color(idx, idx2)
+      totalIdx = idx + idx2
+      background_color = totalIdx % 2 == 0 ? :light_blue : :red
+    end
+
+    def text_color(piece)
+      piece.color == "white" ? :white : :black
+    end
+
+    def place_pieces
+      place_non_pawns("black")
+      place_non_pawns("white")
+      place_pawns("black")
+      place_pawns("white")
+    end
+
+    def place_non_pawns(color)
+      x = color == "black" ? 0 : (SIZE - 1)
+
+      NON_PAWNS.each_with_index do |val, idx|
+        self[x, idx] = val.new(color, [x, idx], self)
+      end
+    end
+
+    def place_pawns(color)
+
+      x = color == "black" ? 1 : (SIZE - 2)
+      (0...SIZE).each do |i|
+        self[x, i] = Pawn.new(color, [x, i], self)
+      end
+    end
+
+    def find_king(color)
+      find_team(color).find do |piece|
+        piece.class == King
+      end
+    end
+
+    def find_team(color)
+      find_all.select do |piece|
+        piece.color == color
+      end
+    end
+
+    def find_all
+      @grid.flatten.compact
+    end
+
+    def occupied?(potential_pos)
+      @grid
+    end
 end

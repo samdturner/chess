@@ -1,5 +1,6 @@
 require_relative 'board.rb'
 require_relative 'human_player.rb'
+require 'colorize'
 
 class Game
   def initialize
